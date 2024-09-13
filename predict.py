@@ -1,26 +1,11 @@
-import os
 import sys
 import json
-import shutil
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 
 
 ############################### Bonus ###############################
-# def plot_prediction(X, Y, prediction, mileage, estimated_price):
-#     """plot the data and the prediction line"""
-
-#     plt.scatter(X, Y, marker='+')
-#     plt.plot(X, prediction, c='r')
-#     plt.scatter([mileage], [estimated_price], c='g', marker='o', label='Estimated price')
-#     plt.annotate(f'{estimated_price:.2f}€', (mileage, estimated_price), textcoords="offset points", xytext=(0,10), ha='center')
-#     plt.xlabel('Mileage (km)')
-#     plt.ylabel('Price (€)')
-#     plt.title('Prediction of a car\'s price based on mileage')
-#     plt.legend(['Cars', 'Prediction', 'Estimated price'])
-#     plt.show()
-
 def plot_prediction(X, Y, theta0, theta1, mileage, estimated_price):
     """plot the data and the prediction line"""
 
@@ -154,11 +139,6 @@ def predict():
     except Exception as e:
         print(f'Error: {e}')
         sys.exit(-1)
-    finally:
-        # delete the __pycache__ directory
-        pycache_dir = os.path.join(os.path.dirname(__file__), '__pycache__')
-        if os.path.exists(pycache_dir):
-            shutil.rmtree(pycache_dir)
 
 
 if __name__ == '__main__':
