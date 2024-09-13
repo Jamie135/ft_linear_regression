@@ -1,24 +1,11 @@
-import os
 import sys
-import argparse
+import json
 import pandas as pd
 import numpy as np
 
 
-# def check_file():
-#     """check if data.csv exists or is correctly formatted"""
-
-#     assert os.path.exists('data.csv'), "file doesn't exist."
-#     data = pd.read_csv('data.csv')
-#     x = np.array(data["km"])
-#     y = np.array(data["price"])
-#     print(x)
-#     print(y)
-#     return data
-
-
-def dataset():
-    """create a dataset from data.csv"""
+def init_parameters():
+    """initialize the parameters for the model"""
 
     try:
         data = pd.read_csv('data.csv')
@@ -26,44 +13,60 @@ def dataset():
         Y = np.array(data['price'], dtype=float)
         if np.isnan(X).any() or np.isnan(Y).any():
             raise ValueError("data.csv contains NaN values")
-        Theta = np.random.randn(2, 1)
-        # print(data)
-        # print(X)
-        # print(Y)
-        # print(Theta)
         X = X.reshape(X.shape[0], 1)
         Y = Y.reshape(Y.shape[0], 1)
-        Xnorm = X
+        Xnorm = X.copy()
         Xmin = np.min(X)
         Xmax = np.max(X)
         for i in range(len(Xnorm)):
             Xnorm[i] = (X[i] - Xmin) / (Xmax - Xmin)
-        normX = np.hstack((Xnorm, np.ones(Xnorm.shape)))
-        print(normX)
+        Xnorm = np.hstack((Xnorm, np.ones(Xnorm.shape)))
+        Thetas = np.random.randn(2, 1)
+        m = len(X)
+        # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nTheta:\n{Theta}")
+        return X, Y, Xnorm, Thetas, m
     except Exception as e:
         print(f'Error: {e}')
         sys.exit(-1)
 
 
+def linear_regression():
+    """train the model with linear regression"""
+
+    X, Y, Xnorm, Thetas, m = init_parameters()
+    learning_rate = 0.07
+    iterations = 1000
+    cost = np.array([0] * 1000, dtype=float)
+
+    # gradient descent
+    for i in range(iterations):
+        estimate_price = np.dot(Xnorm, Thetas)
+        error = estimate_price - Y
+        cost[i] = (1 / (2 * m)) * np.sum(error ** 2)
+        tmp = learning_rate * (1 / m) * np.dot(Xnorm.T, error)
+        Thetas -= tmp
+    prediction = Xnorm.dot(Thetas)
+
+    # print(f"X:\n{X}\n\nY:\n{Y}\n\ncost:\n{cost}\n\nTheta:\n{Theta}\n\nprediction:\n{prediction}")
+    return X, Y, iterations, cost, Thetas, prediction
+
+
+
 def train():
-    """train a dataset from data.csv and save the model in predictions.txt"""
+    """train a dataset from data.csv to get the model"""
 
-    dataset()
-    # theta0 = 0
-    # theta1 = 0
-    # learning_rate = 0.07
-    # m = len(mileage)
-
-    # for _ in range(1000):
-    #     estimate_price = theta0 + theta1 * mileage
-    #     error = estimate_price - price
-    #     tmp_theta0 = learning_rate * (1/m) * np.sum(error)
-    #     tmp_theta1 = learning_rate * (1/m) * np.sum(error * mileage)
-    #     theta0 -= tmp_theta0
-    #     theta1 -= tmp_theta1
-
-    # with open('predictions.txt', 'w') as f:
-    #     f.write(f'{theta0},{theta1}')
+    X, Y, iterations, cost, Thetas, prediction  = linear_regression()
+    try:
+        Thetas_dict = {
+            'Theta0': Thetas[1][0],
+            'Theta1': Thetas[0][0]
+        }
+        with open("thetas.json", "w") as Thetas_json:
+            json.dump(Thetas_dict, Thetas_json, indent=4)
+    except Exception as e:
+        print(f'Error: {e}')
+        sys.exit(-1)
+    print("Thetas parameter has been calculated, see file: thetas.json")
 
 
 if __name__ == '__main__':

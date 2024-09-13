@@ -1,42 +1,43 @@
 import sys
-import argparse
+import json
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 
-def predict():
-    # parser = argparse.ArgumentParser(description='Predict the price of a car')
-    # parser.add_argument('mileage', type=int, help='mileage of the car')
-    # parser.add_argument('trained data', type=str, help='trained data for prediction', default=None)
-    # args = parser.parse_args()
-
+def get_thetas():
+    """get the theta values"""
     try:
-        with open('predictions.txt', 'r') as f:
-            theta0, theta1 = map(float, f.read().split(','))
+        with open('thetas.json', 'r') as thetas_file:
+            Thetas = json.load(thetas_file)
+        theta0 = Thetas['Theta0']
+        theta1 = Thetas['Theta1']
     except:
-        theta0 = 0, theta1 = 0
+        theta0 = 0
+        theta1 = 0
+    return theta0, theta1
 
-    # theta = np.load('theta.npy')
-    # mileage = args.mileage
-    # price = theta[0] + theta[1] * mileage
-    # print(f'Price of a car with {mileage} km: {price}')
 
-    # plt.scatter(data['km'], data['price'], color='blue')
-    # plt.plot(data['km'], theta[0] + theta[1] * data['km'], color='red')
-    # plt.scatter(mileage, price, color='red')
-    # plt.xlabel('Mileage')
-    # plt.ylabel('Price')
-    # plt.title('Linear regression')
-    # plt.show()
-    # Load the parameters
+def get_mileage():
+    while True:
+        try:
+            km = input("Mileage of your car: ")
+            if not all(c in '-0123456789' for c in km):
+                raise ValueError
+            return float(km)
+        except ValueError:
+            print('Please enter a valid integer\n')
+        except KeyboardInterrupt:
+            print('\n\nExiting...')
+            sys.exit(-1)
 
-    # Prompt user for mileage
-    mileage = float(input("Enter the mileage of the car: "))
 
-    # Estimate price
-    estimate_price = theta0 + theta1 * mileage
-    print(f"The estimated price for a car with {mileage} mileage is: {estimate_price}")
+def predict():
+    """predict the price of a car from its mileage"""
+
+    theta0, theta1 = get_thetas()
+    km_input = get_mileage()
+    print(km_input)
 
 
 if __name__ == '__main__':
