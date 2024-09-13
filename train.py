@@ -20,11 +20,16 @@ def init_parameters():
         Xmax = np.max(X)
         for i in range(len(Xnorm)):
             Xnorm[i] = (X[i] - Xmin) / (Xmax - Xmin)
-        Xnorm = np.hstack((Xnorm, np.ones(Xnorm.shape)))
+        Ynorm = Y.copy()
+        Ymin = np.min(Y)
+        Ymax = np.max(Y)
+        for i in range(len(Ynorm)):
+            Ynorm[i] = (Y[i] - Ymin) / (Ymax - Ymin)
+        W = np.hstack((Xnorm, np.ones(Xnorm.shape)))
         Thetas = np.random.randn(2, 1)
         m = len(X)
-        # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nTheta:\n{Theta}")
-        return X, Y, Xnorm, Thetas, m
+        # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nYnorm:\n{Ynorm}\n\nW:\n{W}\n\ncost:\n{cost}\n\nTheta:\n{Theta}\n\nprediction:\n{prediction}")
+        return X, Y, Xnorm, Ynorm, W, Thetas, m
     except Exception as e:
         print(f'Error: {e}')
         sys.exit(-1)
@@ -33,40 +38,47 @@ def init_parameters():
 def linear_regression():
     """train the model with linear regression"""
 
-    X, Y, Xnorm, Thetas, m = init_parameters()
+    X, Y, Xnorm, Ynorm, W, Thetas, m = init_parameters()
     learning_rate = 0.07
     iterations = 1000
     cost = np.array([0] * 1000, dtype=float)
 
     # gradient descent
     for i in range(iterations):
-        estimate_price = np.dot(Xnorm, Thetas)
+        estimate_price = np.dot(W, Thetas)
         error = estimate_price - Y
         cost[i] = (1 / (2 * m)) * np.sum(error ** 2)
-        tmp = learning_rate * (1 / m) * np.dot(Xnorm.T, error)
+        tmp = learning_rate * (1 / m) * np.dot(W.T, error)
         Thetas -= tmp
-    prediction = Xnorm.dot(Thetas)
+    prediction = W.dot(Thetas)
 
-    # print(f"X:\n{X}\n\nY:\n{Y}\n\ncost:\n{cost}\n\nTheta:\n{Theta}\n\nprediction:\n{prediction}")
-    return X, Y, iterations, cost, Thetas, prediction
+    # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nYnorm:\n{Ynorm}\n\nW:\n{W}\n\ncost:\n{cost}\n\nTheta:\n{Theta}\n\nprediction:\n{prediction}")
+    return X, Y, Xnorm, Ynorm, iterations, cost, Thetas, prediction
 
 
 
 def train():
-    """train a dataset from data.csv to get the model"""
+    """train a dataset from data.csv to get the parameters"""
 
-    X, Y, iterations, cost, Thetas, prediction  = linear_regression()
+    X, Y, Xnorm, Ynorm,  iterations, cost, Thetas, prediction  = linear_regression()
     try:
-        Thetas_dict = {
+        parameters = {
+            'X': X.tolist(),
+            'Y': Y.tolist(),
+            'Xnorm': Xnorm.tolist(),
+            'Ynorm': Ynorm.tolist(),
+            'iterations': iterations,
+            'cost': cost.tolist(),
             'Theta0': Thetas[1][0],
-            'Theta1': Thetas[0][0]
+            'Theta1': Thetas[0][0],
+            'prediction': prediction.tolist()
         }
-        with open("thetas.json", "w") as Thetas_json:
-            json.dump(Thetas_dict, Thetas_json, indent=4)
+        with open("parameters.json", "w") as para:
+            json.dump(parameters, para, indent=4)
     except Exception as e:
         print(f'Error: {e}')
         sys.exit(-1)
-    print("Thetas parameter has been calculated, see file: thetas.json")
+    print("Parameters has been created, see file: parameters.json")
 
 
 if __name__ == '__main__':
