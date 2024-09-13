@@ -28,14 +28,14 @@ def init_parameters():
         W = np.hstack((Xnorm, np.ones(Xnorm.shape)))
         Thetas = np.random.randn(2, 1)
         m = len(X)
-        # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nYnorm:\n{Ynorm}\n\nW:\n{W}\n\ncost:\n{cost}\n\nTheta:\n{Theta}\n\nprediction:\n{prediction}")
+        # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nYnorm:\n{Ynorm}\n\nW:\n{W}\n\nThetas:\n{Thetas}")
         return X, Y, Xnorm, Ynorm, W, Thetas, m
     except Exception as e:
         print(f'Error: {e}')
         sys.exit(-1)
 
 
-def linear_regression():
+def gradient_descent():
     """train the model with linear regression"""
 
     X, Y, Xnorm, Ynorm, W, Thetas, m = init_parameters()
@@ -43,11 +43,20 @@ def linear_regression():
     iterations = 1000
     cost = np.array([0] * 1000, dtype=float)
 
-    # gradient descent
+    # gradient descent algorithm
     for i in range(iterations):
         estimate_price = np.dot(W, Thetas)
         error = estimate_price - Y
+
+        # cost function J(t1, t0) = (1 / 2m) * sum((W.[[t1], [t0]] - Y)^2)
+        # where t1 = Theta[1], t0 = Theta[0] and W = [[1, 1], ... , [0.17913321, 1]]
         cost[i] = (1 / (2 * m)) * np.sum(error ** 2)
+
+        # the formula for simultaneous update of Thetas 
+        # for each iterations is to substract tmp from Thetas
+        # where tmp is calculated by multiplying the learning rate
+        # to both d/dt1(J(t1, t0)) and d/dt0(J(t1, t0)) which represent
+        # the partial derivative of the cost function with respect to t1 and t0
         tmp = learning_rate * (1 / m) * np.dot(W.T, error)
         Thetas -= tmp
     prediction = W.dot(Thetas)
@@ -60,7 +69,7 @@ def linear_regression():
 def train():
     """train a dataset from data.csv to get the parameters"""
 
-    X, Y, Xnorm, Ynorm,  iterations, cost, Thetas, prediction  = linear_regression()
+    X, Y, Xnorm, Ynorm,  iterations, cost, Thetas, prediction  = gradient_descent()
     try:
         parameters = {
             'X': X.tolist(),

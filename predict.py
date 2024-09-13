@@ -7,6 +7,62 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
+############################### Bonus ###############################
+# def plot_prediction(X, Y, prediction, mileage, estimated_price):
+#     """plot the data and the prediction line"""
+
+#     plt.scatter(X, Y, marker='+')
+#     plt.plot(X, prediction, c='r')
+#     plt.scatter([mileage], [estimated_price], c='g', marker='o', label='Estimated price')
+#     plt.annotate(f'{estimated_price:.2f}€', (mileage, estimated_price), textcoords="offset points", xytext=(0,10), ha='center')
+#     plt.xlabel('Mileage (km)')
+#     plt.ylabel('Price (€)')
+#     plt.title('Prediction of a car\'s price based on mileage')
+#     plt.legend(['Cars', 'Prediction', 'Estimated price'])
+#     plt.show()
+
+def plot_prediction(X, Y, theta0, theta1, mileage, estimated_price):
+    """plot the data and the prediction line"""
+
+    # generate a range of mileage values from 0 to 250,000 km
+    mileage_range = np.linspace(0, 250000, 500)
+    normalized_mileage_range = (mileage_range - 22899) / (240000 - 22899)
+    prediction_range = theta0 + theta1 * normalized_mileage_range
+
+    plt.scatter(X, Y, marker='+', label='Actual data')
+    plt.plot(mileage_range, prediction_range, c='r', label='Prediction line')
+    if mileage <= 250000:
+        plt.scatter([mileage], [estimated_price], c='g', marker='o', label='Estimated price')
+        plt.annotate(f'{estimated_price:.2f}€', (mileage, estimated_price), textcoords="offset points", xytext=(0,10), ha='center')
+    plt.xlabel('Mileage (km)')
+    plt.ylabel('Price (€)')
+    plt.title('Prediction of a car\'s price based on mileage')
+    plt.legend()
+    plt.show()
+
+
+def plot_loss(iterations, cost):
+    """plot the loss curve"""
+
+    plt.plot(range(iterations), cost)
+    plt.xlabel('Iterations')
+    plt.ylabel('Cost')
+    plt.title('Cost History')
+    plt.legend(['Loss curve'])
+    plt.show()
+
+
+def precision(Y, prediction):
+	"""calculate the coefficient of determination"""
+
+	a = ((Y - prediction) ** 2).sum()
+	b = ((Y - Y.mean()) ** 2).sum()
+	coef = (1 - a / b) * 100
+	print("The precision is equal to: {:.{prec}f}%".format(coef, prec=2))
+	sys.exit(0)
+#####################################################################
+
+
 def get_parameters():
     """get the theta values"""
 
@@ -43,6 +99,9 @@ def get_mileage():
         try:
             km = input("Mileage of your car: ")
             mileage = float(km)
+            if mileage > 409811:
+                print("You should not sell your car, let her rest...")
+                sys.exit(0)
             if mileage < 0:
                 raise ValueError
             return mileage
@@ -53,41 +112,14 @@ def get_mileage():
             sys.exit(-1)
 
 
-####################### Bonus ##############################
-def plot_prediction(X, Y, prediction, mileage, estimated_price):
-    """plot the data and the prediction line"""
+def linear_regression(theta0, theta1):
+    """calculate the estimated price of the car"""
 
-    plt.scatter(X, Y, marker='+')
-    plt.plot(X, prediction, c='r')
-    plt.scatter([mileage], [estimated_price], c='g', marker='o', label='Estimated price')
-    plt.annotate(f'{estimated_price:.2f}€', (mileage, estimated_price), textcoords="offset points", xytext=(0,10), ha='center')
-    plt.xlabel('Mileage (km)')
-    plt.ylabel('Price (€)')
-    plt.title('Price of cars based on mileage')
-    plt.legend(['Cars', 'Prediction', 'Estimated price'])
-    plt.show()
-
-
-def plot_loss(iterations, cost):
-    """plot the loss curve"""
-
-    plt.plot(range(iterations), cost)
-    plt.xlabel('Iterations')
-    plt.ylabel('Cost')
-    plt.title('Cost History')
-    plt.legend(['Loss curve'])
-    plt.show()
-
-
-def precision(Y, prediction):
-	"""calculate the coefficient of determination"""
-
-	a = ((Y - prediction) ** 2).sum()
-	b = ((Y - Y.mean()) ** 2).sum()
-	coef = (1 - a / b) * 100
-	print("The precision is equal to: {:.{prec}f}%".format(coef, prec=2))
-	sys.exit(0)
-############################################################
+    mileage = get_mileage()
+    normalized = (mileage - 22899) / (240000 - 22899)
+    # print(f"\nnormalized mileage: {normalized:.2f}\n\ntheta0: {theta0}\n\ntheta1: {theta1}\n")
+    estimated_price = theta0 + theta1 * normalized
+    return mileage, estimated_price
 
 
 def predict():
@@ -100,15 +132,17 @@ def predict():
     args = parser.parse_args()
 
     X, Y, Xnorm, Ynorm, iterations, cost, theta0, theta1, prediction = get_parameters()
-    mileage = get_mileage()
-    normalized = (mileage - 22899) / (240000 - 22899)
-    estimated_price = theta0 + theta1 * normalized
+    plt.scatter(X, Y, marker='+')
+    plt.title('Prices of cars based on mileage')
+    plt.legend(['Cars', 'Prediction', 'Estimated price'])
+    plt.show()
+    mileage, estimated_price = linear_regression(theta0, theta1)
     print(f"Estimated price: {estimated_price:.2f}€")
 
     try:
         if isinstance(X, np.ndarray) and isinstance(Y, np.ndarray) and isinstance(cost, np.ndarray) and isinstance(prediction, np.ndarray):
             if args.prediction >= 1:
-                plot_prediction(X, Y, prediction, mileage, estimated_price)
+                plot_prediction(X, Y, theta0, theta1, mileage, estimated_price)
             elif args.cost >= 1:
                 plot_loss(iterations, cost)
             elif args.determination >= 1:
