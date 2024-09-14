@@ -2,6 +2,7 @@ import sys
 import json
 import argparse
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 
@@ -14,14 +15,14 @@ def plot_prediction(X, Y, theta0, theta1, mileage, estimated_price):
     normalized_mileage_range = (mileage_range - 22899) / (240000 - 22899)
     prediction_range = theta0 + theta1 * normalized_mileage_range
 
-    plt.scatter(X, Y, marker='+', label='Actual data')
+    plt.scatter(X, Y, marker='+', label='Cars')
     plt.plot(mileage_range, prediction_range, c='r', label='Prediction line')
     if mileage <= 250000:
         plt.scatter([mileage], [estimated_price], c='g', marker='o', label='Estimated price')
         plt.annotate(f'{estimated_price:.2f}€', (mileage, estimated_price), textcoords="offset points", xytext=(0,10), ha='center')
     plt.xlabel('Mileage (km)')
     plt.ylabel('Price (€)')
-    plt.title('Prediction of a car\'s price based on mileage')
+    plt.title('Prediction of a car\'s price based on each mileage (0-250000km)')
     plt.legend()
     plt.show()
 
@@ -52,29 +53,32 @@ def get_parameters():
     """get the theta values"""
 
     try:
+        data = pd.read_csv('data.csv')
+        X = np.array(data['km'], dtype=float)
+        Y = np.array(data['price'], dtype=float)
+        if np.isnan(X).any() or np.isnan(Y).any():
+            raise ValueError("data.csv contains NaN values")
+        X = X.reshape(X.shape[0], 1)
+        Y = Y.reshape(Y.shape[0], 1)
+    except Exception as e:
+        print(f'Error: {e}')
+        sys.exit(-1)
+    try:
         with open('parameters.json', 'r') as para:
             parameters = json.load(para)
-        X = np.array(parameters['X'])
-        Y = np.array(parameters['Y'])
-        Xnorm = np.array(parameters['Xnorm'])
-        Ynorm = np.array(parameters['Ynorm'])
         iterations = parameters['iterations']
         cost = np.array(parameters['cost'])
         theta0 = parameters['Theta0']
         theta1 = parameters['Theta1']
         prediction = np.array(parameters['prediction'])
     except:
-        X = 0
-        Y = 0
-        Xnorm = 0
-        Ynorm = 0
         iterations = 0
         cost = 0
         theta0 = 0
         theta1 = 0
         prediction = 0
-    # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nYnorm:\n{Ynorm}\n\nW:\n{W}\n\ncost:\n{cost}\n\nTheta:\n{theta0}, {theta1}\n\nprediction:\n{prediction}")
-    return X, Y, Xnorm, Ynorm, iterations, cost, theta0, theta1, prediction
+    # print(f"X:\n{X}\n\nY:\n{Y}\n\ncost:\n{cost}\n\nTheta:\n{theta0}, {theta1}\n\nprediction:\n{prediction}")
+    return X, Y, iterations, cost, theta0, theta1, prediction
 
 
 def get_mileage():
@@ -84,9 +88,6 @@ def get_mileage():
         try:
             km = input("Mileage of your car: ")
             mileage = float(km)
-            if mileage > 409811:
-                print("You should not sell your car, let her rest...")
-                sys.exit(0)
             if mileage < 0:
                 raise ValueError
             return mileage
@@ -116,12 +117,19 @@ def predict():
     parser.add_argument("-d", "--determination", action="count", default=0, help="show the coefficient determination")
     args = parser.parse_args()
 
-    X, Y, Xnorm, Ynorm, iterations, cost, theta0, theta1, prediction = get_parameters()
-    plt.scatter(X, Y, marker='+')
-    plt.title('Prices of cars based on mileage')
-    plt.legend(['Cars', 'Prediction', 'Estimated price'])
+    X, Y, iterations, cost, theta0, theta1, prediction = get_parameters()
+
+    plt.scatter(X, Y, marker='+', label='Cars')
+    plt.title('Prices of cars based on their mileage from data.csv')
+    plt.xlabel('Mileage (km)')
+    plt.ylabel('Price (€)')
+    plt.legend()
     plt.show()
+
     mileage, estimated_price = linear_regression(theta0, theta1)
+    if estimated_price < 0:
+        print("You should not sell your car, let her rest...")
+        sys.exit(0)
     print(f"Estimated price: {estimated_price:.2f}€")
 
     try:
@@ -131,8 +139,7 @@ def predict():
             elif args.cost >= 1:
                 plot_loss(iterations, cost)
             elif args.determination >= 1:
-                precision(Y, prediction)
-            
+                precision(Y, prediction) 
     except KeyboardInterrupt:
         print('\n\nExiting...')
         sys.exit(-1)
