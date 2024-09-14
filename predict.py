@@ -7,6 +7,17 @@ import matplotlib.pyplot as plt
 
 
 ############################### Bonus ###############################
+def plot_repartition(X, Y):
+    """plot the data"""
+
+    plt.scatter(X, Y, marker='+', label='Cars')
+    plt.title('Prices of cars based on their mileage from data.csv')
+    plt.xlabel('Mileage (km)')
+    plt.ylabel('Price (€)')
+    plt.legend()
+    plt.show()
+
+
 def plot_prediction(X, Y, theta0, theta1, mileage, estimated_price):
     """plot the data and the prediction line"""
 
@@ -36,21 +47,11 @@ def plot_loss(iterations, cost):
     plt.title('Cost History')
     plt.legend(['Loss curve'])
     plt.show()
-
-
-def precision(Y, prediction):
-	"""calculate the coefficient of determination"""
-
-	a = ((Y - prediction) ** 2).sum()
-	b = ((Y - Y.mean()) ** 2).sum()
-	coef = (1 - a / b) * 100
-	print("The precision is equal to: {:.{prec}f}%".format(coef, prec=2))
-	sys.exit(0)
 #####################################################################
 
 
 def get_parameters():
-    """get the theta values"""
+    """get all parameters from training"""
 
     try:
         data = pd.read_csv('data.csv')
@@ -62,7 +63,7 @@ def get_parameters():
         Y = Y.reshape(Y.shape[0], 1)
     except Exception as e:
         print(f'Error: {e}')
-        sys.exit(-1)
+        sys.exit(1)
     try:
         with open('parameters.json', 'r') as para:
             parameters = json.load(para)
@@ -112,19 +113,15 @@ def predict():
     """predict the price of a car from its mileage"""
 
     parser = argparse.ArgumentParser()
+    parser.add_argument("-r", "--repartition", action="count", default=0, help="show the scatter plot of the data")
     parser.add_argument("-p", "--prediction", action="count", default=0, help="show the prediction line")
     parser.add_argument("-c", "--cost", action="count", default=0, help="show the cost history curve")
-    parser.add_argument("-d", "--determination", action="count", default=0, help="show the coefficient determination")
     args = parser.parse_args()
 
     X, Y, iterations, cost, theta0, theta1, prediction = get_parameters()
 
-    plt.scatter(X, Y, marker='+', label='Cars')
-    plt.title('Prices of cars based on their mileage from data.csv')
-    plt.xlabel('Mileage (km)')
-    plt.ylabel('Price (€)')
-    plt.legend()
-    plt.show()
+    if args.repartition >= 1:
+        plot_repartition(X, Y)
 
     mileage, estimated_price = linear_regression(theta0, theta1)
     if estimated_price < 0:
@@ -133,19 +130,17 @@ def predict():
     print(f"Estimated price: {estimated_price:.2f}€")
 
     try:
-        if isinstance(X, np.ndarray) and isinstance(Y, np.ndarray) and isinstance(cost, np.ndarray) and isinstance(prediction, np.ndarray):
+        if isinstance(cost, np.ndarray) and isinstance(prediction, np.ndarray):
             if args.prediction >= 1:
                 plot_prediction(X, Y, theta0, theta1, mileage, estimated_price)
             elif args.cost >= 1:
                 plot_loss(iterations, cost)
-            elif args.determination >= 1:
-                precision(Y, prediction) 
     except KeyboardInterrupt:
         print('\n\nExiting...')
         sys.exit(-1)
     except Exception as e:
         print(f'Error: {e}')
-        sys.exit(-1)
+        sys.exit(1)
 
 
 if __name__ == '__main__':

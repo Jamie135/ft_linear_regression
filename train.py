@@ -32,7 +32,7 @@ def init_parameters():
         return X, Y, Xnorm, Ynorm, W, Thetas, m
     except Exception as e:
         print(f'Error: {e}')
-        sys.exit(-1)
+        sys.exit(1)
 
 
 def gradient_descent():
@@ -86,7 +86,7 @@ def train():
             json.dump(parameters, para, indent=4)
     except Exception as e:
         print(f'Error: {e}')
-        sys.exit(-1)
+        sys.exit(1)
     print("Parameters has been created, see file: parameters.json")
 
 
