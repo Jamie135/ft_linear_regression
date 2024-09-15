@@ -99,7 +99,7 @@ def get_mileage():
             sys.exit(-1)
 
 
-def linear_regression(theta0, theta1):
+def hypothesis(theta0, theta1):
     """calculate the estimated price of the car"""
 
     mileage = get_mileage()
@@ -123,7 +123,7 @@ def predict():
     if args.repartition >= 1:
         plot_repartition(X, Y)
 
-    mileage, estimated_price = linear_regression(theta0, theta1)
+    mileage, estimated_price = hypothesis(theta0, theta1)
     if estimated_price < 0:
         print("You should not sell your car, let her rest...")
         sys.exit(0)
