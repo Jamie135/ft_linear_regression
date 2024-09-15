@@ -25,11 +25,10 @@ def init_parameters():
         Ymax = np.max(Y)
         for i in range(len(Ynorm)):
             Ynorm[i] = (Y[i] - Ymin) / (Ymax - Ymin)
-        W = np.hstack((Xnorm, np.ones(Xnorm.shape)))
         Thetas = np.array([[0], [0]], dtype=float)
         m = len(X)
-        # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nYnorm:\n{Ynorm}\n\nW:\n{W}\n\nThetas:\n{Thetas}")
-        return X, Y, Xnorm, Ynorm, W, Thetas, m
+        # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nYnorm:\n{Ynorm}\n\nThetas:\n{Thetas}")
+        return X, Y, Xnorm, Ynorm, Thetas, m
     except Exception as e:
         print(f'Error: {e}')
         sys.exit(1)
@@ -38,32 +37,37 @@ def init_parameters():
 def gradient_descent():
     """train the model with linear regression"""
 
-    X, Y, Xnorm, Ynorm, W, Thetas, m = init_parameters()
+    X, Y, Xnorm, Ynorm, Thetas, m = init_parameters()
     learning_rate = 0.07
     iterations = 1000
-    cost = np.array([0] * 1000, dtype=float)
+    cost = np.zeros(iterations, dtype=float)
 
     # gradient descent algorithm
-    for i in range(iterations):
-        estimate_price = np.dot(W, Thetas)
+    for it in range(iterations):
+        estimate_price = np.array([[0]] * 24, dtype=float)
+        for i in range(m):
+            estimate_price[i][0] = Thetas[1][0] + Thetas[0][0] * Xnorm[i][0]
         error = estimate_price - Y
 
         # cost function J(t1, t0) = (1 / 2m) * sum((W.[[t1], [t0]] - Y)^2)
-        # where t1 = Theta[1], t0 = Theta[0] and W = [[1, 1], ... , [0.17913321, 1]]
-        cost[i] = (1 / (2 * m)) * np.sum(error ** 2)
+        # where t1 = Theta[1], t0 = Theta[0]
+        cost[it] = (1 / (2 * m)) * np.sum(error ** 2)
 
-        # the formula for simultaneous update of Thetas 
-        # for each iterations is to substract tmp from Thetas
-        # where tmp is calculated by multiplying the learning rate
+        # tmp1 and tmp0 is calculated by multiplying the learning rate
         # to both d/dt1(J(t1, t0)) and d/dt0(J(t1, t0)) which represent
         # the partial derivative of the cost function with respect to t1 and t0
-        tmp = learning_rate * (1 / m) * np.dot(W.T, error)
-        Thetas -= tmp
-    prediction = W.dot(Thetas)
+        # note: np.fromiter() is used to convert the generator into a 1-dimensional array
+        tmp1 = learning_rate * (1 / m) * np.sum(np.fromiter((error[i][0] * Xnorm[i][0] for i in range(m)), dtype=float))
+        tmp0 = learning_rate * (1 / m) * np.sum(np.fromiter((error[i][0] for i in range(m)), dtype=float))
+        Thetas[0][0] -= tmp1
+        Thetas[1][0] -= tmp0
+        # print(f"error:\n{error}\n\n(tmp1, tmp0):\n({tmp1}, {tmp0})\n\nThetas:\n{Thetas}\n\n")
+    prediction = np.zeros_like(Y)
+    for i in range(m):
+        prediction[i] = Thetas[1][0] + Thetas[0][0] * Xnorm[i][0]
 
-    # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nYnorm:\n{Ynorm}\n\nW:\n{W}\n\ncost:\n{cost}\n\nTheta:\n{Theta}\n\nprediction:\n{prediction}")
+    # print(f"cost:\n{cost}\n\nTheta:\n{Theta}\n\nprediction:\n{prediction}")
     return X, Y, Xnorm, Ynorm, iterations, cost, Thetas, prediction
-
 
 
 def train():
@@ -78,8 +82,8 @@ def train():
             'Ynorm': Ynorm.tolist(),
             'iterations': iterations,
             'cost': cost.tolist(),
-            'Theta0': Thetas[1][0],
             'Theta1': Thetas[0][0],
+            'Theta0': Thetas[1][0],
             'prediction': prediction.tolist()
         }
         with open("parameters.json", "w") as para:

@@ -69,8 +69,8 @@ def get_parameters():
             parameters = json.load(para)
         iterations = parameters['iterations']
         cost = np.array(parameters['cost'])
-        theta0 = parameters['Theta0']
         theta1 = parameters['Theta1']
+        theta0 = parameters['Theta0']
         prediction = np.array(parameters['prediction'])
     except:
         iterations = 0
