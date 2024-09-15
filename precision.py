@@ -27,13 +27,15 @@ def get_parameters():
 
 
 def precision():
-    """calculate the coefficient of determination"""
+    """calculate the coefficient of determination and display it in percentage"""
 
+    # R2 = 1 - (SSres /  SStot)
     Y, prediction = get_parameters()
-    a = ((Y - prediction) ** 2).sum()
-    b = ((Y - Y.mean()) ** 2).sum()
-    coef = (1 - a / b) * 100
-    print("The precision is equal to: {:.{prec}f}%".format(coef, prec=2))
+    ssr = ((Y - prediction) ** 2).sum()
+    sst = ((Y - Y.mean()) ** 2).sum()
+    r2 = (1 - ssr / sst)
+    # print(f"Ymean: {Y.mean()}")
+    print("The precision is equal to: {:.{prec}f}%".format(r2 * 100, prec=2))
 
 
 if __name__ == '__main__':

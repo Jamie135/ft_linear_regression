@@ -127,6 +127,8 @@ def predict():
     if estimated_price < 0:
         print("You should not sell your car, let her rest...")
         sys.exit(0)
+    elif mileage > 250000:
+        print("The car is too old for the prediction to be effective")
     print(f"Estimated price: {estimated_price:.2f}€")
 
     try:

@@ -26,7 +26,7 @@ def init_parameters():
         for i in range(len(Ynorm)):
             Ynorm[i] = (Y[i] - Ymin) / (Ymax - Ymin)
         W = np.hstack((Xnorm, np.ones(Xnorm.shape)))
-        Thetas = np.random.randn(2, 1)
+        Thetas = np.array([[0], [0]], dtype=float)
         m = len(X)
         # print(f"X:\n{X}\n\nY:\n{Y}\n\nXnorm:\n{Xnorm}\n\nYnorm:\n{Ynorm}\n\nW:\n{W}\n\nThetas:\n{Thetas}")
         return X, Y, Xnorm, Ynorm, W, Thetas, m
